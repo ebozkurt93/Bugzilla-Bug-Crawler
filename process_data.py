@@ -7,18 +7,20 @@ import os
 
 
 def getBugCount():
-    bugCount = 0
+    totalBugCount = 0
 
     abspath = os.path.abspath(__file__)
     dname = os.path.dirname(abspath)
     os.chdir(dname)
     for file in glob.glob("*.json"):
         data = json.loads(open(file).read())
-
+        bugCount = 0
         for bug in data['bugs']:
             bugCount += 1
         # print data['bugs'][]['summary']
-    print bugCount
+        print file, bugCount
+        totalBugCount += bugCount
+    print 'total', totalBugCount
 
 
 def getAllSummaries():

@@ -34,6 +34,8 @@ def createProductList():
     print 'Retrieved product list to %s' % os.path.realpath(list.name)
 
 # downloads a JSON file for each product
+
+
 def downloadEachItem():
     if os.path.exists('productList.txt') == True:
         beginTime = time.time()
@@ -63,6 +65,8 @@ def downloadEachItem():
         sys.exit()
 
 # downloads single JSON file for all products
+
+
 def downloadAllAtOnce():
     if os.path.exists('productList.txt') == True:
         beginTime = time.time()
@@ -96,6 +100,90 @@ def downloadAllAtOnce():
         print 'productList.txt does not exist'
         sys.exit()
 
+# downloads a JSON file for each severity
+
+
+def downloadEachItemBySeverity():
+    if os.path.exists('productList.txt') == True:
+        beginTime = time.time()
+        list = open('productList.txt', 'r')
+        mydir = os.path.join(
+            os.getcwd(), datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
+        os.makedirs(mydir)
+        print 'Location for downloads:', mydir
+        for line in list.readlines()[:]:
+            # Don't remove this
+            line = line.replace('\xc2\xa0', ' ').replace('-', '').strip()
+            severityList = ['Blocker', 'Critical', 'Major',
+                            'Normal', 'Minor', 'Trivial', 'Enhancement']
+            for severity in severityList:
+                startTime = time.time()
+                print 'Starting to retrieve %s %s' % (line.strip(), severity.strip())
+                payload = {'product': line, 'severity': severity}
+                request = requests.get(
+                    'https://bugzilla.mozilla.org/rest/bug', params=payload)
+                data = request.json()
+                filename = '{0}_{1}.json'.format(
+                    line.strip(), severity.strip()).decode('utf-8')
+                file = open(mydir + '/' + filename, 'w')
+                # file.write(data)
+                json.dump(data, file)
+                file.close()
+                print 'Retrieved %s.json, It took %d seconds' % (line.strip(), time.time() - startTime)
+        print 'Total time : %d seconds = %.2f minutes' % (time.time() - beginTime, (time.time() - beginTime) / 60)
+    else:
+        print 'productList.txt does not exist'
+        sys.exit()
+
+# downloads a JSON file for each severity
+
+
+def downloadWithDate():
+    if os.path.exists('productList.txt') == True:
+        beginTime = time.time()
+        list = open('productList.txt', 'r')
+        mydir = os.path.join(
+            os.getcwd(), datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
+        os.makedirs(mydir)
+        print 'Location for downloads:', mydir
+        for line in list.readlines()[:]:
+            # Don't remove this
+            line = line.replace('\xc2\xa0', ' ').replace('-', '').strip()
+            #severity = 'Normal'
+            #statusList = ['ASSIGNED', 'CLOSED', 'NEW', 'NEEDINFO', 'REOPENED', 'RESOLVED', 'UNCONFIRMED', 'VERIFIED']
+            dateList = []
+            for i in range(2007,2014):
+                dateList.append(i)
+            #dateList = [2017,2016,2015,2014,2013]
+            for date in dateList:
+                for month in range(1, 13):
+                    endMonth = month
+                    endDate = date
+                    if month == 12:
+                        endDate += 1
+                        endMonth = 1
+                    else: endMonth += 1
+                    startTime = time.time()
+                    dateWithMonth = str(date) + '-' + str('%02d' % month)
+                    endDateWithMonth = str(endDate) + '-' + str('%02d' % endMonth)
+                    print dateWithMonth
+                    print 'Starting to retrieve %s %s' % (line.strip(), dateWithMonth.strip())
+                    payload = {'product': line, 'f1':'creation_ts', 'f2':'creation_ts', 'o1':'greaterthaneq', 'o2':'lessthan', 'v1':dateWithMonth.strip(), 'v2':endDateWithMonth.strip()}
+                    request = requests.get(
+                        'https://bugzilla.mozilla.org/rest/bug', params=payload)
+                    data = request.json()
+                    filename = '{0}_{1}.json'.format(
+                        line.strip(), dateWithMonth.strip()).decode('utf-8')
+                    file = open(mydir + '/' + filename, 'w')
+                    # file.write(data)
+                    json.dump(data, file)
+                    file.close()
+                    print 'Retrieved %s.json, It took %d seconds' % (line.strip(), time.time() - startTime)
+        print 'Total time : %d seconds = %.2f minutes' % (time.time() - beginTime, (time.time() - beginTime) / 60)
+    else:
+        print 'productList.txt does not exist'
+        sys.exit()
+
 
 if __name__ == '__main__':
     for arg in sys.argv:
@@ -109,3 +197,7 @@ if __name__ == '__main__':
 # createProductList()
 # downloadEachItem()
 # downloadAllAtOnce()
+# downloadWithDate()
+
+
+# https://bugzilla.mozilla.org/rest/bug?include_fields=id,summary,status&f1=creation_ts&f2=creation_ts&o1=greaterthaneq&o2=lessthan&resolution=---&v1=-1w&v2=Now
