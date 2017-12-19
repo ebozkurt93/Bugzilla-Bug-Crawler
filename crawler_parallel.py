@@ -15,6 +15,17 @@ import time
 from joblib import Parallel, delayed
 
 
+def createFolders():
+    products = open('productList.txt', 'r')
+    mydir = os.path.join(os.getcwd(), 'download')
+    os.makedirs(mydir)
+
+    for product in products:
+        product = product.replace('\xc2\xa0', ' ').replace('-', '').strip()
+        dir = os.path.join(mydir, product.strip())
+            if not os.path.exists(dir):
+                os.makedirs(dir)
+
 def downloadWithDateParallel(mydir, product, year, month):
         # Don't remove this
         product = product.replace('\xc2\xa0', ' ').replace('-', '').strip()
@@ -34,8 +45,7 @@ def downloadWithDateParallel(mydir, product, year, month):
         filename = '{0}_{1}.json'.format(
             product.strip(), dateWithMonth.strip()).decode('utf-8')
         mydir = os.path.join(mydir, product.strip())
-        if not os.path.exists(mydir):
-            os.makedirs(mydir)
+
         file = open(mydir + '/' + filename, 'w')
         # file.write(data)
         json.dump(data, file)
@@ -45,11 +55,12 @@ def downloadWithDateParallel(mydir, product, year, month):
 if __name__ == '__main__':
 
     if os.path.exists('productList.txt') == True:
+        #createFolders()
         beginTime = time.time()
         products = open('productList.txt', 'r')
         mydir = os.path.join(
-            os.getcwd(), datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
-        os.makedirs(mydir)
+            os.getcwd(), 'download')
+        #os.makedirs(mydir)
         print 'Location for downloads:', mydir
 
         dateList = []
@@ -59,7 +70,7 @@ if __name__ == '__main__':
         for i in range(1,13):
             monthList.append(i)
 
-        Parallel(n_jobs=100)(delayed(downloadWithDateParallel)(mydir, product, year, month) for product in products for year in dateList for month in monthList)
+        Parallel(n_jobs=10)(delayed(downloadWithDateParallel)(mydir, product, year, month) for product in products for year in dateList for month in monthList)
 
         print 'Total time : %d seconds = %.2f minutes' % (time.time() - beginTime, (time.time() - beginTime) / 60)
 

@@ -4,15 +4,17 @@
 import json
 import glob
 import os
+import fnmatch
 
 
-def getBugCount():
+def getBugCount(files):
     totalBugCount = 0
     passedLimit = []
-    abspath = os.path.abspath(__file__)
-    dname = os.path.dirname(abspath)
-    os.chdir(dname)
-    for file in glob.glob("*.json"):
+    # abspath = os.path.abspath(__file__)
+    # dname = os.path.dirname(abspath)
+    # os.chdir(dname)
+    # for file in glob.glob("*.json"):
+    for file in files:
         data = json.loads(open(file).read())
         bugCount = 0
         for bug in data['bugs']:
@@ -27,12 +29,13 @@ def getBugCount():
         print 'Passed or equal to limit: ' + ', '.join(passedLimit)
 
 
-def getAllSummaries():
+def getAllSummaries(files):
     summaries = []
-    abspath = os.path.abspath(__file__)
-    dname = os.path.dirname(abspath)
-    os.chdir(dname)
-    for file in glob.glob("*.json"):
+    # abspath = os.path.abspath(__file__)
+    # dname = os.path.dirname(abspath)
+    # os.chdir(dname)
+    # for file in glob.glob("*.json"):
+    for file in files:
         data = json.loads(open(file).read())
         for bug in data['bugs']:
             summaries.append(bug['summary'].encode('utf-8'))
@@ -41,6 +44,12 @@ def getAllSummaries():
         list.write('{0}\n'.format(item))
     list.close()
 
+def filesWithin(directory_path, pattern="*"):
+    for dirpath, dirnames, filenames in os.walk(directory_path):
+        for file_name in fnmatch.filter(filenames, pattern):
+            yield os.path.join(dirpath, file_name)
 
-getBugCount()
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+getAllSummaries(filesWithin(dname, '*.json'))
 # getAllSummaries()
