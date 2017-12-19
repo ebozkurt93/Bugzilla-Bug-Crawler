@@ -8,7 +8,7 @@ import os
 
 def getBugCount():
     totalBugCount = 0
-
+    passedLimit = []
     abspath = os.path.abspath(__file__)
     dname = os.path.dirname(abspath)
     os.chdir(dname)
@@ -19,8 +19,12 @@ def getBugCount():
             bugCount += 1
         # print data['bugs'][]['summary']
         print file, bugCount
+        if bugCount >= 10000:
+            passedLimit.append(file)
         totalBugCount += bugCount
     print 'total', totalBugCount
+    if(len(passedLimit) > 0):
+        print 'Passed or equal to limit: ' + ', '.join(passedLimit)
 
 
 def getAllSummaries():
@@ -38,5 +42,5 @@ def getAllSummaries():
     list.close()
 
 
-#getBugCount()
-#getAllSummaries()
+getBugCount()
+# getAllSummaries()
