@@ -21,14 +21,18 @@ def createFolders():
     os.makedirs(mydir)
 
     for product in products:
-        product = product.replace('\xc2\xa0', ' ').replace('-', '').strip()
+        product = product.replace('\xc2\xa0', ' ').strip()
         dir = os.path.join(mydir, product.strip())
-            if not os.path.exists(dir):
-                os.makedirs(dir)
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+
+#checks if file exists and is not empty(size > 0)
+def is_non_zero_file(fpath):
+    return os.path.isfile(fpath) and os.path.getsize(fpath) > 0
 
 def downloadWithDateParallel(mydir, product, year, month):
         # Don't remove this
-        product = product.replace('\xc2\xa0', ' ').replace('-', '').strip()
+        product = product.replace('\xc2\xa0', ' ').strip()
         endMonth = month
         endDate = year
         if month == 12:
@@ -52,12 +56,27 @@ def downloadWithDateParallel(mydir, product, year, month):
         file.close()
         print 'Retrieved %s_%s.json, It took %d seconds' % (product.strip(), dateWithMonth.strip(), time.time() - startTime)
 
+def downloadComments(bugId):
+    filename = '{0}.json'.format(bugId).decode('utf-8')
+    mydir = os.path.join(os.getcwd(), 'download', filename)
+    if not is_non_zero_file(mydir):
+        url = 'https://bugzilla.mozilla.org/rest/bug/{0}/comment'.format(bugId)
+        request = requests.get(url)
+        data = request.json()
+        mydir = os.path.join(os.getcwd(), 'download')
+        file = open(mydir + '/' + filename, 'w')
+        json.dump(data, file)
+        file.close()
+        print 'Retrieved comments for bug %d' % bugId
+    #else: print 'Already retrieved bug %d' % bugId
+
 if __name__ == '__main__':
 
     if os.path.exists('productList.txt') == True:
         #createFolders()
         beginTime = time.time()
         products = open('productList.txt', 'r')
+        bugIds = open('idList.txt', 'r')
         mydir = os.path.join(
             os.getcwd(), 'download')
         #os.makedirs(mydir)
@@ -70,7 +89,9 @@ if __name__ == '__main__':
         for i in range(1,13):
             monthList.append(i)
 
-        Parallel(n_jobs=10)(delayed(downloadWithDateParallel)(mydir, product, year, month) for product in products for year in dateList for month in monthList)
+        #Parallel(n_jobs=40)(delayed(downloadWithDateParallel)(mydir, product, year, month) for product in products for year in dateList for month in monthList)
+
+        Parallel(n_jobs=250)(delayed(downloadComments)(int(bugId)) for bugId in bugIds)
 
         print 'Total time : %d seconds = %.2f minutes' % (time.time() - beginTime, (time.time() - beginTime) / 60)
 

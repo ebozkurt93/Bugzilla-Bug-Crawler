@@ -44,6 +44,21 @@ def getAllSummaries(files):
         list.write('{0}\n'.format(item))
     list.close()
 
+def getAllIDs(files):
+    summaries = []
+    # abspath = os.path.abspath(__file__)
+    # dname = os.path.dirname(abspath)
+    # os.chdir(dname)
+    # for file in glob.glob("*.json"):
+    for file in files:
+        data = json.loads(open(file).read())
+        for bug in data['bugs']:
+            summaries.append(bug['id'])
+    list = open('idList.txt', 'w')
+    for item in summaries:
+        list.write('{0}\n'.format(item))
+    list.close()
+
 def filesWithin(directory_path, pattern="*"):
     for dirpath, dirnames, filenames in os.walk(directory_path):
         for file_name in fnmatch.filter(filenames, pattern):
@@ -51,5 +66,5 @@ def filesWithin(directory_path, pattern="*"):
 
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
-getAllSummaries(filesWithin(dname, '*.json'))
+getAllIDs(filesWithin(dname, '*.json'))
 # getAllSummaries()
