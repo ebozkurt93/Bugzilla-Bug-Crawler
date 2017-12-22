@@ -60,14 +60,17 @@ def downloadComments(bugId):
     filename = '{0}.json'.format(bugId).decode('utf-8')
     mydir = os.path.join(os.getcwd(), 'download', filename)
     if not is_non_zero_file(mydir):
-        url = 'https://bugzilla.mozilla.org/rest/bug/{0}/comment'.format(bugId)
-        request = requests.get(url)
-        data = request.json()
-        mydir = os.path.join(os.getcwd(), 'download')
-        file = open(mydir + '/' + filename, 'w')
-        json.dump(data, file)
-        file.close()
-        print 'Retrieved comments for bug %d' % bugId
+        try:
+            url = 'https://bugzilla.mozilla.org/rest/bug/{0}/comment'.format(bugId)
+            request = requests.get(url)
+            data = request.json()
+            mydir = os.path.join(os.getcwd(), 'download')
+            file = open(mydir + '/' + filename, 'w')
+            json.dump(data, file)
+            file.close()
+            print 'Retrieved comments for bug %d' % bugId
+        except:
+            print 'Failed to retrieve bug %d' % bugId
     #else: print 'Already retrieved bug %d' % bugId
 
 if __name__ == '__main__':

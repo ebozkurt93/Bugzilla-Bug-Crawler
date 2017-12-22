@@ -44,6 +44,7 @@ def getAllSummaries(files):
         list.write('{0}\n'.format(item))
     list.close()
 
+
 def getAllIDs(files):
     summaries = []
     # abspath = os.path.abspath(__file__)
@@ -59,12 +60,39 @@ def getAllIDs(files):
         list.write('{0}\n'.format(item))
     list.close()
 
+
+def severityAnalysis(files):
+    severities = []
+    blocker, critical, major, normal, minor, trivial, enhancement = (0 , ) * 7
+    for file in files:
+        data = json.loads(open(file).read())
+        for bug in data['bugs']:
+            severity = bug['severity'].encode('utf-8')
+            if severity == 'blocker': blocker+=1
+            if severity == 'critical': critical+=1
+            if severity == 'major': major+=1
+            if severity == 'normal': normal+=1
+            if severity == 'minor': minor+=1
+            if severity == 'trivial': trivial+=1
+            if severity == 'enhancement': enhancement+=1
+    print '''Severity analysis:
+blocker: %d
+critical: %d
+major: %d
+normal: %d
+minor: %d
+trivial: %d
+enhancement: %d''' % (blocker, critical, major, normal, minor, trivial, enhancement)
+
+
 def filesWithin(directory_path, pattern="*"):
     for dirpath, dirnames, filenames in os.walk(directory_path):
         for file_name in fnmatch.filter(filenames, pattern):
             yield os.path.join(dirpath, file_name)
 
+
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
-getAllIDs(filesWithin(dname, '*.json'))
+#getAllIDs(filesWithin(dname, '*.json'))
+severityAnalysis(filesWithin(dname, '*.json'))
 # getAllSummaries()
