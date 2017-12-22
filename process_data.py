@@ -5,6 +5,9 @@ import json
 import glob
 import os
 import fnmatch
+import shutil #used for file copy
+from joblib import Parallel, delayed
+
 
 
 def getBugCount(files):
@@ -14,17 +17,23 @@ def getBugCount(files):
     # dname = os.path.dirname(abspath)
     # os.chdir(dname)
     # for file in glob.glob("*.json"):
+    countDict = {}
     for file in files:
         data = json.loads(open(file).read())
         bugCount = 0
         for bug in data['bugs']:
             bugCount += 1
-        # print data['bugs'][]['summary']
-        print file, bugCount
-        if bugCount >= 10000:
-            passedLimit.append(file)
+            if countDict.get(bug['product']) == None: countDict[bug['product']] = 1
+            else: countDict[bug['product']] += 1
+            # print data['bugs'][]['summary']
+            #print file, bugCount
+            if bugCount >= 10000:
+                passedLimit.append(file)
         totalBugCount += bugCount
-    print 'total', totalBugCount
+    d = sorted( ((v,k) for k,v in countDict.iteritems()), reverse=True)
+    for v,k in d:
+        print k,v
+    print 'file:', file, 'total:', totalBugCount
     if(len(passedLimit) > 0):
         print 'Passed or equal to limit: ' + ', '.join(passedLimit)
 
@@ -60,6 +69,33 @@ def getAllIDs(files):
         list.write('{0}\n'.format(item))
     list.close()
 
+def copyComments():
+    list = open('idList.txt', 'r')
+    mydir = os.path.join(os.getcwd(), 'copied')
+    #os.makedirs(mydir)
+    for id in list:
+        commentDir = os.path.join(directoryName(), 'comments', id.strip() +'.json')
+        copyDir = os.path.join(directoryName(), 'copied', id.strip()+'.json')
+        if not is_non_zero_file(copyDir):
+            f = open(copyDir, 'w')
+            f.close()
+            try:
+                shutil.copyfile(commentDir,copyDir)
+            except Exception as e:
+                print "Couldn't copy %s\nexception:\n%s" % (id, e)
+    print 'done'
+
+def copyCommentsParallel(id):
+        commentDir = os.path.join(directoryName(), 'comments', id.strip() +'.json')
+        copyDir = os.path.join(directoryName(), 'copied', id.strip()+'.json')
+        if not is_non_zero_file(copyDir):
+            f = open(copyDir, 'w')
+            f.close()
+            try:
+                shutil.copyfile(commentDir,copyDir)
+            except Exception as e:
+                print "Couldn't copy %s\nexception:\n%s" % (id, e)
+
 
 def severityAnalysis(files):
     severities = []
@@ -90,9 +126,24 @@ def filesWithin(directory_path, pattern="*"):
         for file_name in fnmatch.filter(filenames, pattern):
             yield os.path.join(dirpath, file_name)
 
+def directoryName():
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+    return dname
 
-abspath = os.path.abspath(__file__)
-dname = os.path.dirname(abspath)
-#getAllIDs(filesWithin(dname, '*.json'))
-severityAnalysis(filesWithin(dname, '*.json'))
+#checks if file exists and is not empty(size > 0)
+def is_non_zero_file(fpath):
+    return os.path.isfile(fpath) and os.path.getsize(fpath) > 0
+
+
+#getAllIDs(filesWithin(directoryName(), '*.json'))
+#severityAnalysis(filesWithin(dname, '*.json'))
+#getBugCount(filesWithin(dname, '*.json'))
 # getAllSummaries()
+#copyComments()
+
+# if __name__ == '__main__':
+#         list = open('idList.txt', 'r')
+#         mydir = os.path.join(os.getcwd(), 'copied')
+#         #os.makedirs(mydir)
+#         Parallel(n_jobs=50)(delayed(copyCommentsParallel)(id) for id in list)
