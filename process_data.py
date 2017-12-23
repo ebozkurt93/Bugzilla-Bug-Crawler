@@ -53,6 +53,22 @@ def getAllSummaries(files):
         list.write('{0}\n'.format(item))
     list.close()
 
+def getAllComments(files):
+    comments = []
+    count = 0
+    for file in files:
+        count += 1
+        if count % 1000 == 0 : print 'file passed', count
+        try:
+            data = json.loads(open(file).read())
+            for comment in data['bugs'][file_base_name(os.path.basename(file))]['comments']:
+                comments.append(comment['text'])
+        except Exception as e: print e
+    list = open('commentList.txt', 'w')
+    for item in comments:
+        list.write('{0}\n'.format(item.encode("utf-8")))
+    list.close()
+
 
 def getAllIDs(files):
     summaries = []
@@ -135,12 +151,22 @@ def directoryName():
 def is_non_zero_file(fpath):
     return os.path.isfile(fpath) and os.path.getsize(fpath) > 0
 
+#get file base name
+def file_base_name(file_name):
+    if '.' in file_name:
+        separator_index = file_name.index('.')
+        base_name = file_name[:separator_index]
+        return base_name
+    else:
+        return file_name
+
 
 #getAllIDs(filesWithin(directoryName(), '*.json'))
 #severityAnalysis(filesWithin(dname, '*.json'))
 #getBugCount(filesWithin(dname, '*.json'))
 # getAllSummaries()
 #copyComments()
+getAllComments(filesWithin(os.path.join(directoryName(), 'comments'), '*.json'))
 
 # if __name__ == '__main__':
 #         list = open('idList.txt', 'r')
